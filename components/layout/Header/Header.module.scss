@@ -1,7 +1,6 @@
-.footer {
-  @apply flex items-center justify-start;
-  @apply py-2 px-2;
-  @apply border-t-[0.5px] border-gray-500;
+.header {
+  @apply flex justify-between;
+  @apply py-4 px-2;
 
   .anchor {
     @apply flex flex-row items-center gap-x-1;
@@ -10,7 +9,7 @@
 }
 
 [class="dark"] {
-  .mate {
+  .github {
     @apply invert;
   }
 }
