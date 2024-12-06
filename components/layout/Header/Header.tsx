@@ -19,6 +19,9 @@ const Header = () => {
         />
         <span className="font-bold">Code here</span>
       </a>
+      <h2 className="hidden md:block md:text-2xl font-mono uppercase">
+        Find your country 🌏
+      </h2>
       <ThemeSwitcher />
     </div>
   );
