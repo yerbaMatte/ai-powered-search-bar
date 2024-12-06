@@ -1,0 +1,38 @@
+.suggestions_container {
+  @apply w-full my-2 bg-primary-foreground shadow-lg rounded-xl;
+  @apply opacity-0 min-h-0 pointer-events-none;
+  @apply overflow-y-auto border border-primary;
+}
+
+.suggestions_container[data-visible="true"] {
+  @apply opacity-100;
+  @apply max-h-[250px] pointer-events-auto;
+}
+
+.suggestion_list {
+  @apply w-full overflow-y-auto max-h-full;
+}
+
+.suggestion_item {
+  @apply p-2 cursor-pointer text-primary;
+
+  &:hover {
+    @apply bg-gray-200;
+  }
+
+  &:focus {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  &.selected {
+    @apply bg-primary text-primary-foreground;
+  }
+}
+
+[class="dark"] {
+  .suggestion_item {
+    &:hover {
+      @apply bg-gray-800 text-white;
+    }
+  }
+}

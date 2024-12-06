@@ -35,7 +35,7 @@ const ThemeSwitcher = () => {
   // avoid layout shift
   if (!mounted) {
     return (
-      <div className="h-8 w-16">
+      <div className="flex justify-center items-center h-8 w-28">
         <LoadingSpinner />
       </div>
     );

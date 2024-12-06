@@ -1,65 +1,127 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "./SearchBar.module.scss";
+import SuggestionsDropdown from "../SuggestionsDropdown/SuggestionsDropdown";
+import useDebounce from "@/hooks/useDebounce";
+import useClickOutside from "@/hooks/useClickOutside";
+import AnnouncerA11y from "@/lib/AnnouncerA11y";
+
+const debounceTime = 500;
 
 const SearchBar = () => {
-  const router = useRouter();
-  const searchParams = new URLSearchParams(useSearchParams().toString());
-
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [fetchBlocked, setFetchBlocked] = useState<boolean>(false);
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const debouncedInputValue = useDebounce(inputValue, debounceTime);
+  const searchBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const query = searchParams.get("query");
-    if (query) {
-      setInputValue(query);
-    }
-  }, []);
+    if (debouncedInputValue?.trim() && !fetchBlocked) {
+      const fetchSuggestions = async () => {
+        try {
+          const response = await fetch(
+            `/api/countries?query=${debouncedInputValue}`
+          );
+          if (response.ok) {
+            const json = await response.json();
+            setSuggestions(json);
+          } else {
+            setSuggestions([]);
+          }
+        } catch {
+          setSuggestions([]);
+        }
+      };
 
-  const handleInputChange = useCallback(
-    debounce((value: string) => {
-      if (!value) {
-        searchParams.delete("query");
-        router.push("/");
-      } else {
-        searchParams.set("query", value);
-        router.push(`?${searchParams.toString()}`);
+      fetchSuggestions();
+    } else {
+      setSuggestions([]);
+    }
+  }, [debouncedInputValue, fetchBlocked]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value || "";
+    if (!value) {
+      setSuggestions([]);
+      setSelectedIndex(-1);
+    }
+    setInputValue(value);
+    setFetchBlocked(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      setInputValue("");
+      setSuggestions([]);
+      setSelectedIndex(-1);
+    } else if (e.key === "ArrowDown") {
+      if (selectedIndex < suggestions.length - 1) {
+        setSelectedIndex(selectedIndex + 1);
       }
-    }, 1000),
-    []
-  );
+    } else if (e.key === "ArrowUp") {
+      if (selectedIndex > 0) {
+        setSelectedIndex(selectedIndex - 1);
+      }
+    } else if (e.key === "Enter" && selectedIndex >= 0) {
+      const selectedSuggestion = suggestions[selectedIndex];
+      handleSuggestionSelect(selectedSuggestion);
+    }
+  };
+
+  const handleSuggestionSelect = (value: string) => {
+    setInputValue(value);
+    setFetchBlocked(true);
+    setSuggestions([]);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!inputValue && !suggestions.includes(inputValue)) return;
+    console.log("Search submitted:", inputValue);
+  };
+
+  useClickOutside(searchBarRef, () => {
+    setInputValue("");
+    setSuggestions([]);
+    setSelectedIndex(-1);
+  });
 
   return (
-    <div className={styles.input_wrapper}>
-      <input
-        type="text"
-        value={inputValue}
-        aria-autocomplete="list"
-        aria-controls="suggestions"
-        onChange={(e) => {
-          const value = e.target.value;
-          setInputValue(value);
-          handleInputChange(value);
-        }}
-        placeholder="Search..."
-        className={styles.input}
-      />
-    </div>
+    <form className={styles.input_wrapper} onSubmit={handleFormSubmit}>
+      <div className={styles.input_wrapper} ref={searchBarRef}>
+        <label htmlFor="search-bar">
+          <span className="sr-only">Search countries</span>
+        </label>
+        <input
+          id="search-bar"
+          type="text"
+          value={inputValue || ""}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Type here ..."
+          className={styles.input}
+          aria-autocomplete="list"
+          aria-controls="suggestions-list"
+          aria-expanded={suggestions.length > 0}
+        />
+        {/* Notify user how many suggestions are in the list */}
+        <AnnouncerA11y>{`List has ${suggestions.length} search suggestions.`}</AnnouncerA11y>
+        <SuggestionsDropdown
+          data={suggestions}
+          selectedIndex={selectedIndex}
+          handleSuggestionSelection={handleSuggestionSelect}
+        />
+        {/* Notify user if there is no any suggestion */}
+        {!suggestions.length && (
+          <div className="sr-only" aria-live="assertive">
+            No suggestions found.
+          </div>
+        )}
+      </div>
+    </form>
   );
 };
-
-function debounce(
-  func: (value: string) => void,
-  delay: number
-): (value: string) => void {
-  let timer: ReturnType<typeof setTimeout>;
-
-  return function (value: string) {
-    clearTimeout(timer);
-    timer = setTimeout(() => func(value), delay);
-  };
-}
 
 export default SearchBar;
