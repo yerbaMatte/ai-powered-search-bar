@@ -1,4 +1,4 @@
-import { countries } from "@/lib/mockData";
+import { countries } from "@/mocks/countries";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

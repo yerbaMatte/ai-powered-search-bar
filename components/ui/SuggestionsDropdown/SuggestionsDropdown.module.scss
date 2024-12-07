@@ -4,7 +4,7 @@
   @apply overflow-y-auto border border-primary;
 }
 
-.suggestions_container[data-visible="true"] {
+.suggestions_expanded {
   @apply opacity-100;
   @apply max-h-[250px] pointer-events-auto;
 }
