@@ -1,7 +1,6 @@
 .header {
   @apply flex justify-between;
   @apply py-4 px-2;
-  @apply border-b-[0.5px] border-gray-500;
 
   .anchor {
     @apply flex flex-row items-center gap-x-1;

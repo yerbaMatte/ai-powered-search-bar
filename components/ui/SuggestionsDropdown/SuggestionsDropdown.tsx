@@ -16,7 +16,6 @@ const SuggestionsDropdown = ({
 }: SuggestionsDropdownProps) => {
   const dropdownRef = useRef<HTMLUListElement>(null);
   const isVisible = data.length > 0;
-  const currentItem = selectedIndex >= 0 ? data[selectedIndex] : "";
 
   useEffect(() => {
     if (dropdownRef.current && selectedIndex >= 0) {

@@ -26,7 +26,7 @@ const LoadingSpinner = () => {
 const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-  let changeTheme = theme === "dark" ? "light" : "dark";
+  const changeTheme = theme === "dark" ? "light" : "dark";
 
   useEffect(() => {
     setMounted(true);

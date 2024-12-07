@@ -2,10 +2,14 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import styles from "./SearchBar.module.scss";
-import SuggestionsDropdown from "../SuggestionsDropdown/SuggestionsDropdown";
 import useDebounce from "@/hooks/useDebounce";
 import useClickOutside from "@/hooks/useClickOutside";
 import { debounceTime } from "@/lib/constants";
+import dynamic from "next/dynamic";
+
+const SuggestionsDropdownComponent = dynamic(
+  () => import("@/components/ui/SuggestionsDropdown/SuggestionsDropdown")
+);
 
 // input + dropdown (searchbar pattern from w3)
 // https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/#javascriptandcsssourcecode
@@ -100,6 +104,7 @@ const SearchBar = () => {
             aria-labelledby="input-instructions"
             aria-describedby="input-instructions"
             aria-controls="suggestions-listbox"
+            aria-expanded={suggestions.length > 0}
             aria-activedescendant={
               selectedIndex >= 0
                 ? `suggestion-${suggestions[selectedIndex]}`
@@ -117,11 +122,13 @@ const SearchBar = () => {
             </button>
           )}
         </div>
-        <SuggestionsDropdown
-          data={suggestions}
-          selectedIndex={selectedIndex}
-          handleSuggestionSelection={setInputValue}
-        />
+        {suggestions.length > 0 && (
+          <SuggestionsDropdownComponent
+            data={suggestions}
+            selectedIndex={selectedIndex}
+            handleSuggestionSelection={setInputValue}
+          />
+        )}
       </div>
     </div>
   );
