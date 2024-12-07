@@ -5,28 +5,38 @@ import styles from "./SearchBar.module.scss";
 import SuggestionsDropdown from "../SuggestionsDropdown/SuggestionsDropdown";
 import useDebounce from "@/hooks/useDebounce";
 import useClickOutside from "@/hooks/useClickOutside";
-import AnnouncerA11y from "@/lib/AnnouncerA11y";
+import { debounceTime } from "@/lib/constants";
 
-const debounceTime = 500;
+// input + dropdown (searchbar pattern from w3)
+// https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/#javascriptandcsssourcecode
 
 const SearchBar = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [fetchBlocked, setFetchBlocked] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const debouncedInputValue = useDebounce(inputValue, debounceTime);
   const searchBarRef = useRef<HTMLDivElement>(null);
 
+  const resetSearchBar = () => {
+    setInputValue("");
+    setSuggestions([]);
+    setSelectedIndex(-1);
+  };
+
+  useClickOutside(searchBarRef, () => {
+    resetSearchBar();
+  });
+
   useEffect(() => {
-    if (debouncedInputValue?.trim() && !fetchBlocked) {
+    if (debouncedInputValue?.trim() && !suggestions.includes(inputValue)) {
       const fetchSuggestions = async () => {
         try {
           const response = await fetch(
             `/api/countries?query=${debouncedInputValue}`
           );
           if (response.ok) {
-            const json = await response.json();
-            setSuggestions(json);
+            const countries = await response.json();
+            setSuggestions([...countries]);
           } else {
             setSuggestions([]);
           }
@@ -34,12 +44,11 @@ const SearchBar = () => {
           setSuggestions([]);
         }
       };
-
       fetchSuggestions();
     } else {
       setSuggestions([]);
     }
-  }, [debouncedInputValue, fetchBlocked]);
+  }, [debouncedInputValue]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value || "";
@@ -48,79 +57,73 @@ const SearchBar = () => {
       setSelectedIndex(-1);
     }
     setInputValue(value);
-    setFetchBlocked(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!suggestions.length) return;
     if (e.key === "Escape") {
-      setInputValue("");
-      setSuggestions([]);
-      setSelectedIndex(-1);
+      resetSearchBar();
     } else if (e.key === "ArrowDown") {
-      if (selectedIndex < suggestions.length - 1) {
-        setSelectedIndex(selectedIndex + 1);
-      }
+      e.preventDefault();
+      setSelectedIndex((prev) =>
+        prev < suggestions.length - 1 ? prev + 1 : prev
+      );
     } else if (e.key === "ArrowUp") {
-      if (selectedIndex > 0) {
-        setSelectedIndex(selectedIndex - 1);
-      }
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
     } else if (e.key === "Enter" && selectedIndex >= 0) {
-      const selectedSuggestion = suggestions[selectedIndex];
-      handleSuggestionSelect(selectedSuggestion);
+      setInputValue(suggestions[selectedIndex]);
     }
   };
 
-  const handleSuggestionSelect = (value: string) => {
-    setInputValue(value);
-    setFetchBlocked(true);
-    setSuggestions([]);
-  };
-
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!inputValue && !suggestions.includes(inputValue)) return;
-    console.log("Search submitted:", inputValue);
-  };
-
-  useClickOutside(searchBarRef, () => {
-    setInputValue("");
-    setSuggestions([]);
-    setSelectedIndex(-1);
-  });
-
   return (
-    <form className={styles.input_wrapper} onSubmit={handleFormSubmit}>
-      <div className={styles.input_wrapper} ref={searchBarRef}>
-        <label htmlFor="search-bar">
-          <span className="sr-only">Search countries</span>
-        </label>
-        <input
-          id="search-bar"
-          type="text"
-          value={inputValue || ""}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Type here ..."
-          className={styles.input}
-          aria-autocomplete="list"
-          aria-controls="suggestions-list"
-          aria-expanded={suggestions.length > 0}
-        />
-        {/* Notify user how many suggestions are in the list */}
-        <AnnouncerA11y>{`List has ${suggestions.length} search suggestions.`}</AnnouncerA11y>
+    <div ref={searchBarRef} className={styles.component_wrapper}>
+      <div className={styles.combobox}>
+        <div id="input-instructions" className="sr-only">
+          Try to find the country you like, start typing
+        </div>
+        <div aria-live="polite" className="sr-only" id="live-region">
+          {suggestions.length > 0
+            ? `Suggestions expanded, ${suggestions.length} items available.`
+            : "Suggestions collapsed."}
+        </div>
+        <div className={styles.input_container}>
+          <input
+            id="search-bar"
+            type="text"
+            value={inputValue || ""}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Search now"
+            className={styles.input}
+            role="combobox"
+            aria-labelledby="input-instructions"
+            aria-describedby="input-instructions"
+            aria-controls="suggestions-listbox"
+            aria-activedescendant={
+              selectedIndex >= 0
+                ? `suggestion-${suggestions[selectedIndex]}`
+                : undefined
+            }
+          />
+          {inputValue && (
+            <button
+              type="button"
+              className={styles.clear_button}
+              onClick={resetSearchBar}
+              aria-label="Clear search"
+            >
+              &times;
+            </button>
+          )}
+        </div>
         <SuggestionsDropdown
           data={suggestions}
           selectedIndex={selectedIndex}
-          handleSuggestionSelection={handleSuggestionSelect}
+          handleSuggestionSelection={setInputValue}
         />
-        {/* Notify user if there is no any suggestion */}
-        {!suggestions.length && (
-          <div className="sr-only" aria-live="assertive">
-            No suggestions found.
-          </div>
-        )}
       </div>
-    </form>
+    </div>
   );
 };
 

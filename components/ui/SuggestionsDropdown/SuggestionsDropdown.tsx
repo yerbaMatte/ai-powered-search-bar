@@ -14,14 +14,14 @@ const SuggestionsDropdown = ({
   selectedIndex,
   handleSuggestionSelection,
 }: SuggestionsDropdownProps) => {
+  const dropdownRef = useRef<HTMLUListElement>(null);
   const isVisible = data.length > 0;
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const currentItem = selectedIndex >= 0 ? data[selectedIndex] : "";
 
   useEffect(() => {
     if (dropdownRef.current && selectedIndex >= 0) {
       const listItem =
         dropdownRef.current.querySelectorAll("li")[selectedIndex];
-
       if (listItem) {
         listItem.scrollIntoView({
           behavior: "smooth",
@@ -29,40 +29,53 @@ const SuggestionsDropdown = ({
         });
       }
     }
-  }, [selectedIndex, data]);
+  }, [selectedIndex]);
 
   return (
-    <div
-      className={styles.suggestions_container}
-      data-visible={isVisible ? "true" : "false"}
-      ref={dropdownRef}
-      role="listbox"
-      aria-expanded={isVisible}
-      id="suggestions-list"
-    >
-      {isVisible && (
-        <ul
-          role="listbox"
-          aria-label="Search suggestions"
-          className={styles.suggestion_list}
-        >
-          {data.map((item, index) => (
-            <li
-              key={`${item}-${index}`}
-              role="option"
-              aria-selected={selectedIndex === index}
-              className={`${styles.suggestion_item} ${
-                selectedIndex === index ? styles.selected : ""
-              }`}
-              onClick={() => handleSuggestionSelection(item)}
-              tabIndex={selectedIndex === index ? 0 : -1}
+    <>
+      <div
+        className={`${styles.suggestions_container} ${
+          isVisible ? styles.suggestions_expanded : ""
+        } `}
+      >
+        {isVisible && (
+          <>
+            {/* Live region for announcing the current selection */}
+            {/* <div aria-live="polite" className="sr-only">
+              {currentItem ? `${currentItem}, selected.` : ""}
+            </div> */}
+
+            <ul
+              ref={dropdownRef}
+              className={styles.suggestion_list}
+              id="suggestions-listbox"
+              // role="listbox"
+              aria-label="suggestions list"
             >
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+              {data.map((item, index) => {
+                const isSelected = selectedIndex === index;
+
+                return (
+                  <li
+                    id={`suggestion-${item}`}
+                    key={`suggestion-${item}`}
+                    role="option"
+                    aria-selected={isSelected}
+                    tabIndex={isSelected ? 0 : -1}
+                    className={`${styles.suggestion_item} ${
+                      isSelected ? styles.selected : ""
+                    }`}
+                    onClick={() => handleSuggestionSelection(item)}
+                  >
+                    {item}
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+      </div>
+    </>
   );
 };
 
