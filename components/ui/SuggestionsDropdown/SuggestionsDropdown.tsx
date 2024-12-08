@@ -12,6 +12,7 @@ type SuggestionsDropdownProps = {
 const SuggestionsDropdown = ({
   data,
   selectedIndex,
+
   handleSuggestionSelection,
 }: SuggestionsDropdownProps) => {
   const dropdownRef = useRef<HTMLUListElement>(null);
@@ -39,11 +40,6 @@ const SuggestionsDropdown = ({
       >
         {isVisible && (
           <>
-            {/* Live region for announcing the current selection */}
-            {/* <div aria-live="polite" className="sr-only">
-              {currentItem ? `${currentItem}, selected.` : ""}
-            </div> */}
-
             <ul
               ref={dropdownRef}
               className={styles.suggestion_list}

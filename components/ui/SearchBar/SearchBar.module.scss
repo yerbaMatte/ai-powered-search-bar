@@ -17,3 +17,9 @@
   @apply absolute cursor-pointer;
   @apply right-4;
 }
+
+.message {
+  @apply text-sm font-semibold;
+  @apply absolute bottom-11;
+  @apply w-full text-center;
+}

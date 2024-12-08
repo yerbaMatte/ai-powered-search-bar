@@ -1,102 +1,163 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import styles from "./SearchBar.module.scss";
 import useDebounce from "@/hooks/useDebounce";
 import useClickOutside from "@/hooks/useClickOutside";
 import { debounceTime } from "@/lib/constants";
 import dynamic from "next/dynamic";
+import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 
+// input + dropdown (combobox pattern from w3)
+// https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/#javascriptandcsssourcecode
+
+// SuggestionDropdown, ProgressBar import after certain conditions only
 const SuggestionsDropdownComponent = dynamic(
   () => import("@/components/ui/SuggestionsDropdown/SuggestionsDropdown")
 );
-
-// input + dropdown (searchbar pattern from w3)
-// https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/#javascriptandcsssourcecode
+const ProgressBarComponent = dynamic(
+  () => import("@/components/ui/ProgressBar/ProgressBar")
+);
 
 const SearchBar = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
-  const debouncedInputValue = useDebounce(inputValue, debounceTime);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { debouncedValue, setDebouncedValue } = useDebounce(
+    inputValue,
+    debounceTime
+  );
   const searchBarRef = useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const resetSearchBar = () => {
-    setInputValue("");
-    setSuggestions([]);
     setSelectedIndex(-1);
+    setSuggestions([]);
+    setInputValue("");
+    setDebouncedValue("");
+    setMessage("");
   };
 
+  // click outside component - reset
   useClickOutside(searchBarRef, () => {
     resetSearchBar();
   });
 
+  // handles user's typing before deboucing is executed
   useEffect(() => {
-    if (debouncedInputValue?.trim() && !suggestions.includes(inputValue)) {
-      const fetchSuggestions = async () => {
-        try {
-          const response = await fetch(
-            `/api/countries?query=${debouncedInputValue}`
-          );
-          if (response.ok) {
-            const countries = await response.json();
-            setSuggestions([...countries]);
-          } else {
-            setSuggestions([]);
-          }
-        } catch {
-          setSuggestions([]);
-        }
-      };
-      fetchSuggestions();
-    } else {
-      setSuggestions([]);
+    if (!inputValue) {
+      resetSearchBar();
     }
-  }, [debouncedInputValue]);
+  }, [inputValue]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || "";
-    if (!value) {
-      setSuggestions([]);
-      setSelectedIndex(-1);
+  useEffect(() => {
+    //  do NOT re-fetch suggestions if:
+    // user selects suggestion from dropdown
+    // debounced value is invalid
+    if (
+      suggestions.includes(debouncedValue) ||
+      suggestions.length > 0 ||
+      !inputValue
+    ) {
+      return;
     }
-    setInputValue(value);
-  };
+
+    // input validation after debounce time
+    const isValid = /^[a-zA-Z\s]{4,32}$/.test(debouncedValue.trim());
+    if (!isValid) {
+      setMessage("Input: 4-32 letters, no numbers/symbols.");
+      return;
+    }
+
+    // clear any errors from message area and fetch suggestions
+    setMessage(null);
+
+    const fetchSuggestions = async () => {
+      setIsLoading(true);
+      try {
+        setMessage(null);
+        const response = await fetch(`/api/openai?query=${debouncedValue}`);
+        if (!response.ok) throw new Error("Failed to fetch suggestions.");
+        const { suggestions } = await response.json();
+        setSuggestions(suggestions);
+        setMessage("🚀 Here is your results.");
+        setSelectedIndex(-1);
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+        setSuggestions([]);
+        setMessage("Something went wrong. Please try again.");
+      }
+      setIsLoading(false);
+    };
+
+    fetchSuggestions();
+  }, [debouncedValue]);
+
+  const memoizedSuggestions = useMemo(() => {
+    return suggestions.map((suggestion) => suggestion.trim());
+  }, [suggestions]);
+
+  const filteredSuggestions = useMemo(() => {
+    if (!inputValue) return [];
+    if (inputValue === debouncedValue) return suggestions;
+    return memoizedSuggestions.filter((suggestion) =>
+      suggestion.toLowerCase().includes(inputValue.toLowerCase())
+    );
+  }, [inputValue, memoizedSuggestions]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!suggestions.length) return;
+    if (!filteredSuggestions.length) return;
     if (e.key === "Escape") {
       resetSearchBar();
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex((prev) =>
-        prev < suggestions.length - 1 ? prev + 1 : prev
+        prev < filteredSuggestions.length - 1 ? prev + 1 : prev
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
     } else if (e.key === "Enter" && selectedIndex >= 0) {
-      setInputValue(suggestions[selectedIndex]);
+      handleSuggestionSelection(filteredSuggestions[selectedIndex]);
     }
+  };
+
+  const handleSuggestionSelection = (item: string) => {
+    setInputValue(item);
+    setDebouncedValue("");
+    setSelectedIndex(0);
+    setMessage(`🎉 Chosen value: ${item}`);
   };
 
   return (
     <div ref={searchBarRef} className={styles.component_wrapper}>
+      {inputValue && suggestions.length === 0 && (
+        <ProgressBarComponent
+          debouncedValue={debouncedValue}
+          suggestions={filteredSuggestions}
+          selectedIndex={selectedIndex}
+          inputValue={inputValue}
+        />
+      )}
       <div className={styles.combobox}>
         <div id="input-instructions" className="sr-only">
-          Try to find the country you like, start typing
+          Start typing to search. Suggestions will appear after the progress bar
+          completes.
         </div>
+
         <div aria-live="polite" className="sr-only" id="live-region">
-          {suggestions.length > 0
-            ? `Suggestions expanded, ${suggestions.length} items available.`
+          {filteredSuggestions.length > 0
+            ? `Suggestions expanded, ${filteredSuggestions.length} items available.`
             : "Suggestions collapsed."}
         </div>
         <div className={styles.input_container}>
+          {message && <p className={styles.message}>{message}</p>}
           <input
             id="search-bar"
             type="text"
             value={inputValue || ""}
-            onChange={handleInputChange}
+            onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search now"
             className={styles.input}
@@ -104,10 +165,10 @@ const SearchBar = () => {
             aria-labelledby="input-instructions"
             aria-describedby="input-instructions"
             aria-controls="suggestions-listbox"
-            aria-expanded={suggestions.length > 0}
+            aria-expanded={filteredSuggestions.length > 0}
             aria-activedescendant={
               selectedIndex >= 0
-                ? `suggestion-${suggestions[selectedIndex]}`
+                ? `suggestion-${filteredSuggestions[selectedIndex]}`
                 : undefined
             }
           />
@@ -122,11 +183,12 @@ const SearchBar = () => {
             </button>
           )}
         </div>
-        {suggestions.length > 0 && (
+        {isLoading && <LoadingSpinner size={48} classNames="m-auto my-4" />}
+        {filteredSuggestions.length > 0 && (
           <SuggestionsDropdownComponent
-            data={suggestions}
+            data={filteredSuggestions}
             selectedIndex={selectedIndex}
-            handleSuggestionSelection={setInputValue}
+            handleSuggestionSelection={handleSuggestionSelection}
           />
         )}
       </div>
