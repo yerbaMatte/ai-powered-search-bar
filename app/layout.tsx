@@ -5,8 +5,9 @@ import "./globals.css";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Searchbar assignment",
-  description: "This project was developed regarding an interview task.",
+  title: "AI-Powered Search Bar with Suggestions",
+  description:
+    "This project features an AI-powered search bar that provides intelligent suggestions, developed as part of an interview task.",
 };
 
 export default function RootLayout({
