@@ -1,0 +1,11 @@
+.progress_container {
+  @apply w-full h-3;
+  @apply absolute top-8 left-0 my-4;
+}
+
+.progress_bar {
+  @apply rounded-2xl;
+  @apply h-full bg-[#4caf50]
+  height: 100%;
+  transition: width 0.1s ease-out;
+}

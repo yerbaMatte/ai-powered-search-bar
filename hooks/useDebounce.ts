@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 
-// useDebounce hook for debouncing a value
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+//debounce hook - avoid fetch calls on every keystroke
+function useDebounce<T>(
+  value: T,
+  delay: number
+): { debouncedValue: T; setDebouncedValue: Dispatch<SetStateAction<T>> } {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -14,7 +17,7 @@ function useDebounce<T>(value: T, delay: number): T {
     };
   }, [value, delay]);
 
-  return debouncedValue;
+  return { debouncedValue, setDebouncedValue };
 }
 
 export default useDebounce;
