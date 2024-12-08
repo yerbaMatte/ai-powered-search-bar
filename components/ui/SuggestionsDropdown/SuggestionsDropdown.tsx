@@ -44,7 +44,7 @@ const SuggestionsDropdown = ({
               ref={dropdownRef}
               className={styles.suggestion_list}
               id="suggestions-listbox"
-              // role="listbox"
+              role="listbox"
               aria-label="suggestions list"
             >
               {data.map((item, index) => {

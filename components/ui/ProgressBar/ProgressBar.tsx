@@ -53,7 +53,13 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   return (
     <>
       {inputValue && suggestions.length === 0 && (
-        <div className={styles.progress_container}>
+        <div
+          className={styles.progress_container}
+          role="progress-bar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <div
             className={styles.progress_bar}
             style={{ width: `${progress}%` }}

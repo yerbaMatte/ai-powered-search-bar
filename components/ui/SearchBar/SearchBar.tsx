@@ -75,20 +75,33 @@ const SearchBar = () => {
 
     const fetchSuggestions = async () => {
       setIsLoading(true);
+
       try {
         setMessage(null);
         const response = await fetch(`/api/openai?query=${debouncedValue}`);
-        if (!response.ok) throw new Error("Failed to fetch suggestions.");
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorMessage = errorData.error || "Unexpected error occurred.";
+          throw new Error(errorMessage);
+        }
         const { suggestions } = await response.json();
         setSuggestions(suggestions);
+        if (!suggestions.length) {
+          resetSearchBar();
+          setMessage("No suggestions available.");
+          return;
+        }
         setMessage("🚀 Here is your results.");
         setSelectedIndex(-1);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching suggestions:", error);
-        setSuggestions([]);
-        setMessage("Something went wrong. Please try again.");
+        setSuggestions([]); //
+        setMessage(
+          error.message || "Something went wrong. Please try again later."
+        );
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     fetchSuggestions();
@@ -151,6 +164,9 @@ const SearchBar = () => {
             ? `Suggestions expanded, ${filteredSuggestions.length} items available.`
             : "Suggestions collapsed."}
         </div>
+        <div aria-live="assertive" className="sr-only" id="live-region">
+          {message && message !== "" ? message : ""}
+        </div>
         <div className={styles.input_container}>
           {message && <p className={styles.message}>{message}</p>}
           <input
@@ -177,7 +193,7 @@ const SearchBar = () => {
               type="button"
               className={styles.clear_button}
               onClick={resetSearchBar}
-              aria-label="Clear search"
+              aria-label="clear search"
             >
               &times;
             </button>
