@@ -9,6 +9,7 @@ const Header = () => {
         href="https://github.com/yerbaMatte/search-bar-assignment"
         target="_blank"
         className={styles.anchor}
+        aria-label="Get Code"
       >
         <Image
           src="/github.svg"

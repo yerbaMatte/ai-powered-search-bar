@@ -8,6 +8,7 @@ const Footer = () => {
         href="https://www.blog.yerbamatte.com"
         target="_blank"
         className={styles.anchor}
+        aria-label="Go to my blog website"
       >
         <Image
           src="/mate.svg"

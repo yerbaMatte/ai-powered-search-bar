@@ -100,8 +100,16 @@ const SearchBar = () => {
         />
       )}
       <div className={styles.combobox}>
-        <div aria-live="assertive" className="sr-only" id="live-region">
-          {message && message !== "" ? message : ""}
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+          id="live-region"
+        >
+          {message && message !== "" ? `${message}. ` : ""}
+          {filteredSuggestions.length > 0
+            ? `Suggestions expanded, ${filteredSuggestions.length} items available.`
+            : "Suggestions collapsed."}
         </div>
         <div className={styles.input_container}>
           {message && <p className={styles.message}>{message}</p>}
@@ -114,10 +122,8 @@ const SearchBar = () => {
             placeholder="Search now"
             className={styles.input}
             role="combobox"
-            aria-labelledby="input-instructions"
-            aria-description="Start typing to search. Suggestions will appear after the progress bar completes."
+            aria-label="Start typing to search. Suggestions will appear after the progress bar completes."
             aria-controls="suggestions-listbox"
-            aria-expanded={filteredSuggestions.length > 0}
             aria-activedescendant={activeIndex}
           />
           {inputValue && (
