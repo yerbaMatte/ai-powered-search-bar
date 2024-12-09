@@ -4,8 +4,8 @@
   .input {
     @apply w-full;
     @apply p-2 pr-6;
-    @apply border border-primary rounded-xl;
-    @apply flex;
+    @apply border-none rounded-xl;
+    @apply flex bg-primary text-primary-foreground;
   }
 
   .clear_button {

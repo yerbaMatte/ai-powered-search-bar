@@ -44,6 +44,7 @@ const SearchBar = () => {
   // handles user's typing before deboucing execution
   useEffect(() => {
     if (!inputValue) resetSearchBar();
+    if (inputValue === debouncedValue) setDebouncedValue("");
   }, [inputValue]);
 
   //  do NOT re-fetch (guard fn):
@@ -106,7 +107,11 @@ const SearchBar = () => {
       : undefined;
 
   const isDebouncing = inputValue && suggestions.length === 0;
-  const isLoading = debouncedValue && !suggestions.length && !message;
+  const isLoading: boolean = !!(
+    debouncedValue &&
+    !suggestions.length &&
+    !message
+  );
 
   return (
     <div ref={searchBarRef} className={styles.component_wrapper}>
@@ -127,6 +132,7 @@ const SearchBar = () => {
           filteredSuggestions,
           handleSuggestionSelection,
           setSelectedIndex,
+          isLoading,
         }}
       />
       {isLoading && <LoadingSpinner size={48} classNames={styles.spinner} />}

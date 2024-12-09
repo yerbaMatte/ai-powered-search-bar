@@ -8,6 +8,7 @@ interface SearchInputProps {
   resetSearchBar: () => void;
   setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
   selectedIndex: number;
+  isLoading: boolean;
   filteredSuggestions: string[];
   handleSuggestionSelection: (item: string) => void;
 }
@@ -16,6 +17,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   inputValue,
   activeIndex,
   message,
+  isLoading,
   setInputValue,
   handleSuggestionSelection,
   resetSearchBar,
@@ -48,14 +50,17 @@ const SearchInput: React.FC<SearchInputProps> = ({
         id="search-bar"
         type="text"
         value={inputValue || ""}
-        onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
+        onChange={(e) => setInputValue(e.target.value)}
         placeholder="Search now"
         className={styles.input}
         role="combobox"
-        aria-label="Start typing to search. Suggestions will appear after the progress bar completes."
+        readOnly={isLoading}
+        aria-busy={isLoading}
+        aria-disabled={isLoading}
         aria-controls="suggestions-listbox"
         aria-activedescendant={activeIndex}
+        aria-label="Start typing to search. Suggestions will appear after the progress bar completes."
       />
       {inputValue && (
         <button

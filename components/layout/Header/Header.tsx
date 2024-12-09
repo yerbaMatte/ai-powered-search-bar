@@ -20,6 +20,7 @@ const Header = () => {
         />
         <span className="font-bold">Code here</span>
       </a>
+      <h2 className={styles.heading}>ai-powered-search-bar</h2>
       <ThemeSwitcher />
     </div>
   );
