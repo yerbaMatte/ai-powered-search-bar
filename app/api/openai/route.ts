@@ -67,7 +67,7 @@ export async function GET(request: Request) {
         message: error.message,
         stack: error.stack,
 
-        response: (error as any).response,
+        response: (error as { response?: unknown }).response,
       });
     } else {
       console.error("Unknown error calling OpenAI API:", error);
