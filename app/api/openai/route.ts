@@ -18,10 +18,10 @@ export async function GET(request: Request) {
     );
   }
 
-  if (query.length < 2 || query.length > 32) {
+  if (query.length < 4 || query.length > 32) {
     return new Response(
       JSON.stringify({
-        error: "Query must be between 2 and 32 characters.",
+        error: "Query must be between 4 and 32 characters.",
       }),
       {
         status: 400,

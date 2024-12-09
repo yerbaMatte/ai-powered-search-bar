@@ -7,11 +7,8 @@ import useClickOutside from "@/hooks/useClickOutside";
 import { debounceTime } from "@/lib/constants";
 import dynamic from "next/dynamic";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
+import { useSuggestions } from "@/hooks/useSuggestions";
 
-// input + dropdown (combobox pattern from w3)
-// https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/#javascriptandcsssourcecode
-
-// SuggestionDropdown, ProgressBar import after certain conditions only
 const SuggestionsDropdownComponent = dynamic(
   () => import("@/components/ui/SuggestionsDropdown/SuggestionsDropdown")
 );
@@ -21,15 +18,18 @@ const ProgressBarComponent = dynamic(
 
 const SearchBar = () => {
   const [inputValue, setInputValue] = useState<string>("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const searchBarRef = useRef<HTMLDivElement>(null);
+
   const { debouncedValue, setDebouncedValue } = useDebounce(
     inputValue,
     debounceTime
   );
-  const searchBarRef = useRef<HTMLDivElement>(null);
-  const [message, setMessage] = useState<string | null>(null);
+
+  const { suggestions, setSuggestions, message, setMessage } =
+    useSuggestions(debouncedValue);
+
+  const isLoading = debouncedValue && !suggestions.length && !message;
 
   const resetSearchBar = () => {
     setSelectedIndex(-1);
@@ -39,73 +39,14 @@ const SearchBar = () => {
     setMessage("");
   };
 
-  // click outside component - reset
   useClickOutside(searchBarRef, () => {
-    resetSearchBar();
+    resetSearchBar(); // click outside component - reset
   });
 
-  // handles user's typing before deboucing is executed
   useEffect(() => {
-    if (!inputValue) {
-      resetSearchBar();
-    }
+    !inputValue && resetSearchBar(); // when input is empty string reset
+    inputValue === debouncedValue && setSelectedIndex(0); // when new data is fetched - set the index to 0
   }, [inputValue]);
-
-  useEffect(() => {
-    //  do NOT re-fetch suggestions if:
-    // user selects suggestion from dropdown
-    // debounced value is invalid
-    if (
-      suggestions.includes(debouncedValue) ||
-      suggestions.length > 0 ||
-      !inputValue
-    ) {
-      return;
-    }
-
-    // input validation after debounce time
-    const isValid = /^[a-zA-Z\s]{4,32}$/.test(debouncedValue.trim());
-    if (!isValid) {
-      setMessage("Input: 4-32 letters, no numbers/symbols.");
-      return;
-    }
-
-    // clear any errors from message area and fetch suggestions
-    setMessage(null);
-
-    const fetchSuggestions = async () => {
-      setIsLoading(true);
-
-      try {
-        setMessage(null);
-        const response = await fetch(`/api/openai?query=${debouncedValue}`);
-        if (!response.ok) {
-          const errorData = await response.json();
-          const errorMessage = errorData.error || "Unexpected error occurred.";
-          throw new Error(errorMessage);
-        }
-        const { suggestions } = await response.json();
-        setSuggestions(suggestions);
-        if (!suggestions.length) {
-          resetSearchBar();
-          setMessage("No suggestions available.");
-          return;
-        }
-        setMessage("🚀 Here is your results.");
-        setSelectedIndex(-1);
-      } catch (error: any) {
-        console.error("Error fetching suggestions:", error);
-        setSuggestions([]); //
-        setMessage(
-          error.message || "Something went wrong. Please try again later."
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSuggestions();
-  }, [debouncedValue]);
 
   const memoizedSuggestions = useMemo(() => {
     return suggestions.map((suggestion) => suggestion.trim());
@@ -140,8 +81,13 @@ const SearchBar = () => {
     setInputValue(item);
     setDebouncedValue("");
     setSelectedIndex(0);
-    setMessage(`🎉 Chosen value: ${item}`);
+    setMessage(`Chosen value: ${item}`);
   };
+
+  const activeIndex =
+    selectedIndex >= 0
+      ? `suggestion-${filteredSuggestions[selectedIndex]}`
+      : undefined;
 
   return (
     <div ref={searchBarRef} className={styles.component_wrapper}>
@@ -154,16 +100,6 @@ const SearchBar = () => {
         />
       )}
       <div className={styles.combobox}>
-        <div id="input-instructions" className="sr-only">
-          Start typing to search. Suggestions will appear after the progress bar
-          completes.
-        </div>
-
-        <div aria-live="polite" className="sr-only" id="live-region">
-          {filteredSuggestions.length > 0
-            ? `Suggestions expanded, ${filteredSuggestions.length} items available.`
-            : "Suggestions collapsed."}
-        </div>
         <div aria-live="assertive" className="sr-only" id="live-region">
           {message && message !== "" ? message : ""}
         </div>
@@ -179,14 +115,10 @@ const SearchBar = () => {
             className={styles.input}
             role="combobox"
             aria-labelledby="input-instructions"
-            aria-describedby="input-instructions"
+            aria-description="Start typing to search. Suggestions will appear after the progress bar completes."
             aria-controls="suggestions-listbox"
             aria-expanded={filteredSuggestions.length > 0}
-            aria-activedescendant={
-              selectedIndex >= 0
-                ? `suggestion-${filteredSuggestions[selectedIndex]}`
-                : undefined
-            }
+            aria-activedescendant={activeIndex}
           />
           {inputValue && (
             <button
@@ -199,7 +131,9 @@ const SearchBar = () => {
             </button>
           )}
         </div>
-        {isLoading && <LoadingSpinner size={48} classNames="m-auto my-4" />}
+        <div className="absolute top-9 left-0 w-full">
+          {isLoading && <LoadingSpinner size={48} classNames="m-auto my-4" />}
+        </div>
         {filteredSuggestions.length > 0 && (
           <SuggestionsDropdownComponent
             data={filteredSuggestions}
@@ -213,3 +147,6 @@ const SearchBar = () => {
 };
 
 export default SearchBar;
+
+// input + dropdown (combobox pattern from w3)
+// https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/#javascriptandcsssourcecode
