@@ -1,4 +1,5 @@
 import { OpenAI } from "openai";
+import isError from "@/lib/types";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -60,12 +61,17 @@ export async function GET(request: Request) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error: any) {
-    console.error("Error calling OpenAI API:", {
-      message: error.message,
-      stack: error.stack,
-      response: error.response,
-    });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      console.error("Error calling OpenAI API:", {
+        message: error.message,
+        stack: error.stack,
+
+        response: (error as any).response,
+      });
+    } else {
+      console.error("Unknown error calling OpenAI API:", error);
+    }
 
     return new Response(
       JSON.stringify({ error: "Failed to fetch suggestions from OpenAI." }),
