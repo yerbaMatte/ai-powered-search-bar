@@ -6,9 +6,10 @@ import useDebounce from "@/hooks/useDebounce";
 import useClickOutside from "@/hooks/useClickOutside";
 import { debounceTime } from "@/lib/constants";
 import dynamic from "next/dynamic";
+import AriaRegion from "../AriaRegion/AriaRegion";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 import SearchInput from "../SearchInput.tsx/SearchInput";
-import AriaRegion from "../Aria/AriaRegion";
+
 import { fetchSuggestionsFromAPI } from "@/lib/fetchSuggestions";
 
 const SuggestionsDropdownComponent = dynamic(
