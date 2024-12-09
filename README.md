@@ -1,4 +1,4 @@
-ai-powered-search-bar 🚀
+AI Powered SearchBar 🚀
 Fully-featured search bar component powered by OpenAI's GPT-3.5-Turbo, built with the Next.js framework.
 
 ✨ Features Overview
