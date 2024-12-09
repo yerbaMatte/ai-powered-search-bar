@@ -1,18 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+ai-powered-search-bar 🚀
+Fully-featured search bar component powered by OpenAI's GPT-3.5-Turbo, built with the Next.js framework.
 
-ai-powered-search-bar: Features Overview
-Powered by OpenAI: Utilizes the GPT-3.5-Turbo model providing dynamic results for user queries.
+✨ Features Overview
+🔮 AI-Powered Search
+Leverages OpenAI's GPT-3.5-Turbo model to provide dynamic user queries.
 
-Unit Testing with Jest.
+🧪 Unit Testing with Jest
+Comprehensive testing ensures reliability and consistent performance.
 
-Next.js Framework.
+⚡ Next.js Framework
+Built with Next.js, enabling server-side rendering (SSR) and more performance tools.
 
-Theme Switcher: Includes dark/light mode for UX and visual adaptability.
+🎨 Theme Switcher
+Includes a Dark/Light Mode toggle for optimal user experience and visual adaptability.
 
-Responsive Design: Fully responsive, ensuring the component looks and works perfectly across devices—desktop, tablet, and mobile.
+📱 Responsive Design
 
-Keyboard Navigation, allowing users to navigate suggestions using arrow keys, select with Enter, and close using Esc.
+🎹 Keyboard Navigation
+Keyboard-friendly functionality allows users to:
 
-ARIA Compliance: Adheres to W3C's ARIA best practices, offering enhanced accessibility for users relying on assistive technologies.
-
-## Deploy on Vercel
+♿ ARIA Compliance
+Adheres to W3C's ARIA best practices for enhanced accessibility, making it intuitive and usable for assistive technologies.
