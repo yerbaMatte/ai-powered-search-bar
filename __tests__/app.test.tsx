@@ -95,6 +95,13 @@ describe("Application", () => {
 
     describe("Input Validation", () => {
       test("renders a message when no valid input is provided", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          json: async () => ({
+            error: "Query must be between 4 and 32 characters.",
+          }),
+        });
         const { queryAllByText, getByRole } = renderSearchBar();
         const inputElement = getByRole("combobox");
 
@@ -103,7 +110,7 @@ describe("Application", () => {
         await waitFor(
           () => {
             const messages = queryAllByText(
-              /Input: 4-32 letters, no numbers\/symbols./i
+              /Query must be between 4 and 32 characters./i
             );
             expect(messages[0]).toBeInTheDocument();
           },

@@ -1,0 +1,5 @@
+.container {
+  @apply flex flex-col grow gap-y-1 justify-center;
+  @apply w-full m-auto items-center;
+  @apply max-w-[500px] px-4;
+}

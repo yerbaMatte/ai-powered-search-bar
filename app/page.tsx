@@ -1,10 +1,11 @@
 import SearchBar from "@/components/ui/SearchBar/SearchBar";
+import styles from "./page.module.scss";
 
 const page = () => {
   return (
-    <div className="w-full grow flex flex-col gap-y-1 m-auto justify-center items-center max-w-[500px] px-4">
+    <section className={styles.container}>
       <SearchBar />
-    </div>
+    </section>
   );
 };
 

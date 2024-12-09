@@ -1,25 +1,8 @@
 .component_wrapper {
   @apply relative w-full;
-
-  .input {
-    @apply w-full;
-    @apply p-2 pr-6;
-    @apply border border-primary rounded-xl;
-    @apply flex;
-  }
 }
 
-.input_container {
-  @apply relative flex items-center;
-}
-.clear_button {
-  @apply text-xl text-primary;
-  @apply absolute cursor-pointer;
-  @apply right-4;
-}
-
-.message {
-  @apply text-sm font-semibold;
-  @apply absolute bottom-11;
-  @apply w-full text-center;
+.spinner {
+  @apply absolute top-11 left-0;
+  @apply w-full mx-auto my-4;
 }
