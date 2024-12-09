@@ -24,6 +24,7 @@ const SearchBar = () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const searchBarRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [isTextSelected, setIsTextSelected] = useState(false);
   const { debouncedValue, setDebouncedValue } = useDebounce(
     inputValue,
     debounceTime
@@ -45,6 +46,12 @@ const SearchBar = () => {
   useEffect(() => {
     if (!inputValue) resetSearchBar();
     if (inputValue === debouncedValue) setDebouncedValue("");
+    if (isTextSelected && inputValue !== "") {
+      setIsTextSelected(false);
+      const currentInput = inputValue;
+      resetSearchBar();
+      setInputValue(currentInput);
+    }
   }, [inputValue]);
 
   //  do NOT re-fetch (guard fn):
@@ -133,6 +140,7 @@ const SearchBar = () => {
           handleSuggestionSelection,
           setSelectedIndex,
           isLoading,
+          setIsTextSelected,
         }}
       />
       {isLoading && <LoadingSpinner size={48} classNames={styles.spinner} />}

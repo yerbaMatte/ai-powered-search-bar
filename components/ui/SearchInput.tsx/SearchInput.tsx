@@ -6,6 +6,7 @@ interface SearchInputProps {
   activeIndex: string | undefined;
   setInputValue: (value: string) => void;
   resetSearchBar: () => void;
+  setIsTextSelected: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
   selectedIndex: number;
   isLoading: boolean;
@@ -21,12 +22,18 @@ const SearchInput: React.FC<SearchInputProps> = ({
   setInputValue,
   handleSuggestionSelection,
   resetSearchBar,
+  setIsTextSelected,
   setSelectedIndex,
   selectedIndex,
   filteredSuggestions,
 }) => {
   // onKeyDown
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "a") {
+      // e.preventDefault();
+      setIsTextSelected(true);
+      return;
+    }
     if (!filteredSuggestions.length) return;
     if (e.key === "Escape") {
       resetSearchBar();
