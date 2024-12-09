@@ -9,7 +9,7 @@
   }
 
   .clear_button {
-    @apply text-xl text-primary;
+    @apply text-xl text-primary-foreground;
     @apply absolute cursor-pointer;
     @apply right-4;
   }
