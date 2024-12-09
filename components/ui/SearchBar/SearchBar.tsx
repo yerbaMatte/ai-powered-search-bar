@@ -43,7 +43,7 @@ const SearchBar = () => {
 
   // handles user's typing before deboucing execution
   useEffect(() => {
-    !inputValue && resetSearchBar();
+    if (!inputValue) resetSearchBar();
   }, [inputValue]);
 
   //  do NOT re-fetch (guard fn):
