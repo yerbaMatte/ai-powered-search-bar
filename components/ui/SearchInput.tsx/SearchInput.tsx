@@ -64,6 +64,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
         role="combobox"
         readOnly={isLoading}
         aria-busy={isLoading}
+        aria-expended
         aria-disabled={isLoading}
         aria-controls="suggestions-listbox"
         aria-activedescendant={activeIndex}
