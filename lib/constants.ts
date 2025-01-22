@@ -1,1 +1,1 @@
-export const debounceTime = 2000;
+export const DEBOUNCE_TIME = 2000;

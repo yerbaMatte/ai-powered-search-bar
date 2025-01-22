@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import styles from "./SearchBar.module.scss";
 import useDebounce from "@/hooks/useDebounce";
 import useClickOutside from "@/hooks/useClickOutside";
-import { debounceTime } from "@/lib/constants";
+import { DEBOUNCE_TIME } from "@/lib/constants";
 import dynamic from "next/dynamic";
 import AriaRegion from "../AriaRegion/AriaRegion";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
@@ -28,7 +28,7 @@ const SearchBar = () => {
   const [isTextSelected, setIsTextSelected] = useState(false);
   const { debouncedValue, setDebouncedValue } = useDebounce(
     inputValue,
-    debounceTime
+    DEBOUNCE_TIME
   );
 
   const resetSearchBar = () => {
