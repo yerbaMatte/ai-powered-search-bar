@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { debounceTime } from "@/lib/constants";
+import { DEBOUNCE_TIME } from "@/lib/constants";
 import styles from "./ProgressBar.module.scss";
 
 interface ProgressBarProps {
@@ -31,7 +31,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
     } else if (debouncedValue !== inputValue) {
       setProgress(100);
 
-      const ms = debounceTime / 100;
+      const ms = DEBOUNCE_TIME / 100;
 
       interval = setInterval(() => {
         setProgress((prev) => {
